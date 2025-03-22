@@ -1,5 +1,7 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { type Project } from "@shared/schema";
+import { Project } from "@shared/schema";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface ProjectCardProps {
   project: Project;
@@ -7,75 +9,97 @@ interface ProjectCardProps {
 }
 
 export default function ProjectCard({ project, isDragging = false }: ProjectCardProps) {
-  const { title, description, image, github } = project;
-  
+  // Default placeholder image if none provided
+  const projectImage = project.image || "https://via.placeholder.com/800x450?text=No+Image";
+
   return (
-    <Card 
-      className={`h-full overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 cursor-grab ${isDragging ? 'shadow-xl cursor-grabbing' : ''}`}
+    <motion.div 
+      whileHover={{ y: -5 }} 
+      className="h-full"
     >
-      <div className="h-48 overflow-hidden bg-gray-200 dark:bg-gray-700">
-        {image ? (
-          <img 
-            src={image} 
-            alt={title} 
-            className="w-full h-full object-cover" 
+      <Card className={`overflow-hidden h-full transition-all ${
+        isDragging ? "ring-2 ring-primary shadow-lg" : ""
+      }`}>
+        <div className="relative aspect-video overflow-hidden bg-accent/10">
+          <img
+            src={projectImage}
+            alt={project.title}
+            className="w-full h-full object-cover transition-transform hover:scale-105"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              const target = e.target as HTMLImageElement;
+              target.src = "https://via.placeholder.com/800x450?text=No+Image";
+            }}
           />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="64"
-              height="64"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-gray-400 dark:text-gray-500"
+          {isDragging && (
+            <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center">
+              <div className="text-primary/80 font-semibold">Dragging...</div>
+            </div>
+          )}
+        </div>
+        
+        <CardHeader className="p-4">
+          <CardTitle className="line-clamp-1 text-xl">{project.title || "Untitled Project"}</CardTitle>
+        </CardHeader>
+        
+        <CardContent className="p-4 pt-0">
+          <p className="text-muted-foreground line-clamp-3">
+            {project.description || "No description provided."}
+          </p>
+        </CardContent>
+        
+        <CardFooter className="p-4 pt-0 flex gap-2">
+          {project.github && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open(project.github, '_blank')}
+              className="inline-flex items-center"
             >
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-              <polyline points="16 6 12 2 8 6" />
-              <line x1="12" y1="2" x2="12" y2="15" />
-            </svg>
-          </div>
-        )}
-      </div>
-      
-      <CardHeader className="px-6 py-4">
-        <h3 className="text-xl font-semibold">{title}</h3>
-      </CardHeader>
-      
-      <CardContent className="px-6 py-2">
-        <p className="text-muted-foreground line-clamp-3">{description}</p>
-      </CardContent>
-      
-      <CardFooter className="px-6 py-4 flex justify-between items-center">
-        {github && (
-          <a
-            href={github}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-primary hover:text-primary/80"
-          >
-            <svg 
-              viewBox="0 0 24 24" 
-              width="16" 
-              height="16" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              fill="none" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              className="mr-2"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
+                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+                <path d="M9 18c-4.51 2-5-2-7-2" />
+              </svg>
+              GitHub
+            </Button>
+          )}
+          {project.image && (
+            <Button 
+              size="sm"
+              onClick={() => window.open(project.image, '_blank')}
             >
-              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-            </svg>
-            View on GitHub
-          </a>
-        )}
-        <span className="text-xs text-muted-foreground">Drag to reorder</span>
-      </CardFooter>
-    </Card>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2"
+              >
+                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="m21 15-5-5L5 21" />
+              </svg>
+              View Full
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+    </motion.div>
   );
 }

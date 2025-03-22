@@ -1,16 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { 
+  Form, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormControl, 
+  FormMessage 
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import { contactFormSchema, ContactForm, type SocialMedia } from "@shared/schema";
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { SocialMedia, contactFormSchema, ContactForm } from "@shared/schema";
+import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { motion } from "framer-motion";
+import { useState } from "react";
 
 interface ContactSectionProps {
   email?: string;
@@ -19,34 +25,33 @@ interface ContactSectionProps {
 
 export default function ContactSection({ email, socialMedia }: ContactSectionProps) {
   const { toast } = useToast();
-  const [showSuccess, setShowSuccess] = useState(false);
-  
-  // Valid social media links
-  const validSocialMedia = socialMedia.filter(s => s.name && s.url);
-  
+  const [isSent, setIsSent] = useState(false);
+
   // Initialize form
   const form = useForm<ContactForm>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
       name: "",
       email: "",
-      message: ""
-    }
+      message: "",
+    },
   });
-  
+
   // Handle form submission
   const contactMutation = useMutation({
     mutationFn: async (data: ContactForm) => {
-      const response = await apiRequest("POST", "/api/contact", data);
+      const portfolioId = 1; // In a real app, this would be the actual portfolio ID
+      const response = await apiRequest("POST", "/api/contact", { ...data, portfolioId });
       return await response.json();
     },
     onSuccess: () => {
       toast({
         title: "Message sent!",
-        description: "Thanks for your message! I'll get back to you soon.",
+        description: "Thank you for your message. I'll get back to you soon.",
       });
-      setShowSuccess(true);
       form.reset();
+      setIsSent(true);
+      setTimeout(() => setIsSent(false), 5000);
     },
     onError: (error) => {
       toast({
@@ -54,189 +59,186 @@ export default function ContactSection({ email, socialMedia }: ContactSectionPro
         description: error.message || "Failed to send message. Please try again.",
         variant: "destructive",
       });
-    }
+    },
   });
-  
+
   const onSubmit = (data: ContactForm) => {
     contactMutation.mutate(data);
   };
-  
-  // Reset success message after 3 seconds
-  useEffect(() => {
-    if (showSuccess) {
-      const timer = setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [showSuccess]);
-  
+
   return (
-    <section id="contact" className="py-16 px-4 bg-white dark:bg-gray-900 transition-colors">
-      <div className="max-w-4xl mx-auto">
-        <motion.h2 
-          className="text-3xl font-bold text-center mb-4"
+    <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 bg-accent/5">
+      <div className="container mx-auto">
+        <motion.div 
+          className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.6 }}
         >
-          Get In Touch
-        </motion.h2>
-        <motion.p 
-          className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          Have a question or want to work together? Feel free to reach out to me!
-        </motion.p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
+          <h2 className="text-3xl font-bold text-primary">Get In Touch</h2>
+          <div className="mt-2 h-1 w-20 bg-primary/30 mx-auto rounded-full"></div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <motion.div 
+            className="space-y-6"
+            initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <Card>
-              <CardContent className="pt-6">
-                <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
-                
-                <div className="space-y-4">
-                  {email && (
-                    <div className="flex items-start">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mt-1 mr-3 text-primary"
-                      >
-                        <rect width="20" height="16" x="2" y="4" rx="2" />
-                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                      </svg>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        <a 
-                          href={`mailto:${email}`} 
-                          className="hover:text-primary"
-                        >
-                          {email}
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {validSocialMedia.map((social, index) => (
-                    <div key={index} className="flex items-start">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mt-1 mr-3 text-primary"
-                      >
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                      </svg>
-                      <div>
-                        <p className="text-sm text-muted-foreground">{social.name}</p>
-                        <a 
-                          href={social.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="hover:text-primary break-all"
-                        >
-                          {social.url}
-                        </a>
-                      </div>
-                    </div>
+            <h3 className="text-xl font-semibold">Contact Information</h3>
+            
+            {email && (
+              <div className="flex items-center gap-3">
+                <div className="bg-primary/10 p-3 rounded-full text-primary">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="24" 
+                    height="24" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                  >
+                    <rect width="20" height="16" x="2" y="4" rx="2" />
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-muted-foreground text-sm">Email</p>
+                  <a 
+                    href={`mailto:${email}`} 
+                    className="text-foreground hover:text-primary transition-colors"
+                  >
+                    {email}
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {socialMedia && socialMedia.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="text-lg font-medium">Connect on Social Media</h4>
+                <div className="flex flex-wrap gap-4">
+                  {socialMedia.map((social, index) => (
+                    <a
+                      key={index}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-accent/50 hover:bg-accent p-2 rounded-full transition-colors"
+                      aria-label={`Connect on ${social.name}`}
+                    >
+                      {social.name.toLowerCase().includes('github') && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+                          <path d="M9 18c-4.51 2-5-2-7-2" />
+                        </svg>
+                      )}
+                      {social.name.toLowerCase().includes('linkedin') && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                          <rect width="4" height="12" x="2" y="9" />
+                          <circle cx="4" cy="4" r="2" />
+                        </svg>
+                      )}
+                      {(social.name.toLowerCase().includes('twitter') || social.name.toLowerCase().includes('x.com')) && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
+                        </svg>
+                      )}
+                      {social.name.toLowerCase().includes('instagram') && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                          <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                        </svg>
+                      )}
+                      {!social.name.toLowerCase().includes('github') && 
+                       !social.name.toLowerCase().includes('linkedin') && 
+                       !social.name.toLowerCase().includes('twitter') && 
+                       !social.name.toLowerCase().includes('x.com') && 
+                       !social.name.toLowerCase().includes('instagram') && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="2" x2="22" y1="12" y2="12" />
+                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                        </svg>
+                      )}
+                    </a>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            )}
           </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
+
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
           >
+            <h3 className="text-xl font-semibold mb-6">Send a Message</h3>
+            
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <Form.Field
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
-                    <Form.Item>
-                      <Form.Label>Name</Form.Label>
-                      <Form.Control>
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
                         <Input placeholder="Your name" {...field} />
-                      </Form.Control>
-                      <Form.Message />
-                    </Form.Item>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
                 />
                 
-                <Form.Field
+                <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
-                    <Form.Item>
-                      <Form.Label>Email</Form.Label>
-                      <Form.Control>
-                        <Input placeholder="your.email@example.com" {...field} />
-                      </Form.Control>
-                      <Form.Message />
-                    </Form.Item>
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your email address" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
                 />
                 
-                <Form.Field
+                <FormField
                   control={form.control}
                   name="message"
                   render={({ field }) => (
-                    <Form.Item>
-                      <Form.Label>Message</Form.Label>
-                      <Form.Control>
+                    <FormItem>
+                      <FormLabel>Message</FormLabel>
+                      <FormControl>
                         <Textarea 
-                          placeholder="Your message..." 
+                          placeholder="Your message"
                           className="min-h-[120px]"
                           {...field} 
                         />
-                      </Form.Control>
-                      <Form.Message />
-                    </Form.Item>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
                 />
                 
                 <Button 
-                  type="submit" 
+                  type="submit"
                   className="w-full bg-primary hover:bg-primary/90 text-white"
-                  disabled={contactMutation.isPending}
+                  disabled={contactMutation.isPending || isSent}
                 >
-                  {contactMutation.isPending ? "Sending..." : "Send Message"}
+                  {contactMutation.isPending ? 'Sending...' : isSent ? 'Message Sent!' : 'Send Message'}
                 </Button>
-                
-                {showSuccess && (
-                  <div className="text-green-600 dark:text-green-400 text-sm mt-2 animate-pulse">
-                    Thanks for your message! I'll get back to you soon.
-                  </div>
-                )}
               </form>
             </Form>
           </motion.div>

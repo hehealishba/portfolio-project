@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Link } from "wouter";
 
 interface NavbarProps {
   name: string;
@@ -10,102 +9,141 @@ export default function Navbar({ name }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Handle scroll effect for navbar
+  // Handle scroll event for navbar styling
   useEffect(() => {
     const handleScroll = () => {
-      const offset = window.scrollY;
-      if (offset > 50) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
+      const isScrolled = window.scrollY > 10;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
-
-  // Navigation links
-  const navLinks = [
-    { name: "Home", href: "#hero" },
-    { name: "About", href: "#about" },
-    { name: "Projects", href: "#projects" },
-    { name: "Contact", href: "#contact" },
-  ];
+  }, [scrolled]);
 
   return (
-    <nav 
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
-        scrolled 
-          ? "bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-md" 
-          : "bg-white dark:bg-gray-800"
+    <nav
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+        scrolled
+          ? "bg-background/80 backdrop-blur-md shadow-sm py-2"
+          : "bg-transparent py-4"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <a href="#hero" className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold text-primary">{name.split(' ')[0]}</span>
-              <span className="text-gray-500 dark:text-gray-300 text-xl">.</span>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center">
+          <Link href="/">
+            <a className="text-2xl font-bold text-primary hover:text-primary/80 transition-colors">
+              {name.split(" ")[0]}
             </a>
-            <div className="hidden md:ml-10 md:flex md:space-x-8">
-              {navLinks.map((link, index) => (
-                <a 
-                  key={index} 
-                  href={link.href}
-                  className={`${
-                    index === 0 
-                      ? "text-gray-900 dark:text-white" 
-                      : "text-gray-500 dark:text-gray-300"
-                  } hover:text-primary dark:hover:text-primary/70 px-3 py-2 text-sm font-medium transition-colors`}
-                >
-                  {link.name}
-                </a>
-              ))}
-            </div>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-6">
+            <a
+              href="#about"
+              className="text-foreground/80 hover:text-primary transition-colors"
+            >
+              About
+            </a>
+            <a
+              href="#projects"
+              className="text-foreground/80 hover:text-primary transition-colors"
+            >
+              Projects
+            </a>
+            <a
+              href="#contact"
+              className="text-foreground/80 hover:text-primary transition-colors"
+            >
+              Contact
+            </a>
+            <Link href="/">
+              <a className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                Edit Portfolio
+              </a>
+            </Link>
           </div>
-          
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="4" x2="20" y1="12" y2="12" />
-                    <line x1="4" x2="20" y1="6" y2="6" />
-                    <line x1="4" x2="20" y1="18" y2="18" />
-                  </svg>
-                  <span className="sr-only">Open main menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <div className="flex flex-col mt-6 space-y-2">
-                  {navLinks.map((link, index) => (
-                    <a
-                      key={index}
-                      href={link.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="py-2 px-4 text-lg font-medium hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
-                    >
-                      {link.name}
-                    </a>
-                  ))}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden focus:outline-none text-foreground"
+            aria-label="Toggle mobile menu"
+          >
+            {mobileMenuOpen ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <div
+        className={`md:hidden transition-all duration-300 overflow-hidden ${
+          mobileMenuOpen ? "max-h-64" : "max-h-0"
+        }`}
+      >
+        <div className="container mx-auto px-4 py-2 space-y-2 bg-background/90 backdrop-blur-md">
+          <a
+            href="#about"
+            className="block py-2 text-foreground/80 hover:text-primary transition-colors"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            About
+          </a>
+          <a
+            href="#projects"
+            className="block py-2 text-foreground/80 hover:text-primary transition-colors"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Projects
+          </a>
+          <a
+            href="#contact"
+            className="block py-2 text-foreground/80 hover:text-primary transition-colors"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Contact
+          </a>
+          <Link href="/">
+            <a 
+              className="block py-2 text-primary hover:text-primary/80 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Edit Portfolio
+            </a>
+          </Link>
         </div>
       </div>
     </nav>

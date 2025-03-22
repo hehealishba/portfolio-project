@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 interface HeroSectionProps {
   name: string;
@@ -8,69 +8,71 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ name, shortBio, profilePicture }: HeroSectionProps) {
+  // Default placeholder image if none provided
+  const profileImage = profilePicture || "https://via.placeholder.com/400";
+
   return (
-    <section id="hero" className="py-20 md:py-28 px-4 bg-gradient-to-br from-primary-50 to-white dark:from-gray-800 dark:to-gray-900 transition-colors">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-        <motion.div 
-          className="order-2 md:order-1"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-heading leading-tight">
-            Hi, I'm <span className="text-primary">{name}</span>
-          </h1>
-          <p className="mt-4 text-xl text-muted-foreground">{shortBio}</p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Button
-              asChild
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-white"
-            >
-              <a href="#projects">View My Work</a>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-            >
-              <a href="#contact">Contact Me</a>
-            </Button>
-          </div>
-        </motion.div>
-        
-        <motion.div 
-          className="order-1 md:order-2 flex justify-center"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          {profilePicture ? (
-            <img 
-              src={profilePicture} 
-              alt={`${name}'s profile`} 
-              className="w-52 h-52 md:w-72 md:h-72 object-cover rounded-full border-4 border-white dark:border-gray-700 shadow-lg" 
-            />
-          ) : (
-            <div className="w-52 h-52 md:w-72 md:h-72 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="96"
-                height="96"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-gray-400 dark:text-gray-500"
+    <section className="min-h-screen flex items-center pt-20 pb-16 px-4 sm:px-6 lg:px-8 bg-background">
+      <div className="container mx-auto">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-10">
+          <motion.div 
+            className="flex-1 space-y-6"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              {name}
+            </h1>
+            <p className="text-xl sm:text-2xl text-muted-foreground">
+              {shortBio}
+            </p>
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Button 
+                size="lg" 
+                className="bg-primary hover:bg-primary/90 text-white"
+                onClick={() => {
+                  const aboutSection = document.getElementById('about');
+                  aboutSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
               >
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
+                Learn More
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => {
+                  const contactSection = document.getElementById('contact');
+                  contactSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Contact Me
+              </Button>
             </div>
-          )}
-        </motion.div>
+          </motion.div>
+
+          <motion.div 
+            className="relative flex-1 max-w-md"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="w-full aspect-square rounded-full overflow-hidden border-4 border-primary/20 shadow-xl">
+              <img 
+                src={profileImage} 
+                alt={`${name} profile`} 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to placeholder if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.src = "https://via.placeholder.com/400";
+                }} 
+              />
+            </div>
+            <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-primary/10 rounded-full -z-10" />
+            <div className="absolute -top-4 -left-4 w-32 h-32 bg-primary/10 rounded-full -z-10" />
+          </motion.div>
+        </div>
       </div>
     </section>
   );
